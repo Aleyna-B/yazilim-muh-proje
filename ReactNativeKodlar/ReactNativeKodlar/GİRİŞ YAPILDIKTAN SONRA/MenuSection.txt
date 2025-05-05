@@ -1,0 +1,12 @@
+import React from 'react';
+import { View } from 'react-native';
+
+const MenuSection = ({ children }) => {
+  return (
+    <View className="flex-row justify-around items-center w-full py-4">
+      {children}
+    </View>
+  );
+};
+
+export default MenuSection;

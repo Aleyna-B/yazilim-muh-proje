@@ -1,0 +1,17 @@
+import React from 'react';
+import { View } from 'react-native';
+import StatusBarIcons from './StatusBarIcons';
+import SettingsList from './SettingsList';
+import HelpButton from './HelpButton';
+
+const InputDesign = () => {
+  return (
+    <View className="flex-1 bg-white">
+      <StatusBarIcons />
+      <SettingsList />
+      <HelpButton />
+    </View>
+  );
+};
+
+export default InputDesign;

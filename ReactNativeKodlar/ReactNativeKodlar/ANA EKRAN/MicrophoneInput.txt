@@ -1,0 +1,21 @@
+import React from 'react';
+import { View, Image, TouchableOpacity } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
+
+export const MicrophoneInput = () => {
+  return (
+    <View className="relative w-[170px] h-[170px] justify-center items-center">
+      <View className="absolute w-full h-full">
+        <Svg width="170" height="170" viewBox="0 0 170 170">
+          <Circle cx="85" cy="85" r="85" fill="#007BFF" />
+        </Svg>
+      </View>
+      <Image
+        source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/eb9ffc3e76836f8403a5872e42ccc9ec2223cea0?placeholderIfAbsent=true" }}
+        className="w-16 h-16"
+        resizeMode="contain"
+        accessibilityLabel="mic"
+      />
+    </View>
+  );
+};

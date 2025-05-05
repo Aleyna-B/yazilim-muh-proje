@@ -1,0 +1,52 @@
+import * as React from "react";
+import {
+  View,
+  Image,
+  Text,
+  SafeAreaView,
+  Platform,
+  StatusBar,
+} from "react-native";
+
+const ILKGIRISSAYFASI = () => {
+  return (
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="flex-1 items-center justify-between pt-10 pb-6">
+        {/* Top Image */}
+        <Image
+          source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/52e57b49a94c96b1ca2c06596bd2fcf13f1f3c67?placeholderIfAbsent=true&apiKey=d8843e4625194a60a50f2798cb42bc7f" }}
+          className="w-full h-40 object-cover"
+          resizeMode="contain"
+        />
+
+        {/* Welcome Text */}
+        <View className="items-center my-8">
+          <Text className="text-2xl font-bold text-center text-gray-800">
+            HOŞ GELDİNİZ!
+          </Text>
+        </View>
+
+        {/* Register Text */}
+        <View className="items-center my-8">
+          <Text className="text-xl font-semibold text-center text-gray-700">
+            KAYIT OL
+          </Text>
+        </View>
+
+        {/* Bottom Image */}
+        <Image
+          source={{ uri: "https://cdn.builder.io/api/v1/image/assets/TEMP/18ccb745797dee4adb0c3c51a511032cec797c48?placeholderIfAbsent=true&apiKey=d8843e4625194a60a50f2798cb42bc7f" }}
+          className="w-full h-40 object-cover mt-auto"
+          resizeMode="contain"
+        />
+
+        {/* Home Indicator */}
+        {Platform.OS === 'ios' && (
+          <View className="h-1 w-20 bg-gray-300 rounded-full mx-auto mt-4" />
+        )}
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default ILKGIRISSAYFASI;

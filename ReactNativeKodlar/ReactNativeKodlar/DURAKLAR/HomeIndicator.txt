@@ -1,0 +1,10 @@
+import React from 'react';
+import { View } from 'react-native';
+
+const HomeIndicator = () => {
+  return (
+    <View className="w-full h-1 bg-gray-200 rounded-full mt-auto mb-2" />
+  );
+};
+
+export default HomeIndicator;

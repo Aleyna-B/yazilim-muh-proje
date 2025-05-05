@@ -1,0 +1,12 @@
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const NavigationHeader = () => {
+  return (
+    <View className="py-2 px-4 bg-white">
+      <Text className="text-lg font-bold text-gray-800">NASIL GİDERİM?</Text>
+    </View>
+  );
+};
+
+export default NavigationHeader;

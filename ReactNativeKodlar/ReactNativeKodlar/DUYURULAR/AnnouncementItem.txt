@@ -1,0 +1,14 @@
+import React from 'react';
+import { View, Text } from 'react-native';
+
+const AnnouncementItem = ({ text }) => {
+  return (
+    <View className="py-2 px-4 border-b border-gray-200">
+      <Text className="text-base text-gray-800">
+        {text}
+      </Text>
+    </View>
+  );
+};
+
+export default AnnouncementItem;
