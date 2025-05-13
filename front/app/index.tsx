@@ -1,27 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Redirect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, ActivityIndicator } from 'react-native';
+import { useAuth } from './context/auth';
 
 export default function Index() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
-
-  useEffect(() => {
-    checkRegistrationStatus();
-  }, []);
-
-  const checkRegistrationStatus = async () => {
-    try {
-      const userData = await AsyncStorage.getItem('userData');
-      setIsRegistered(userData !== null);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Kullanıcı bilgileri kontrol edilirken hata oluştu:', error);
-      setIsLoading(false);
-    }
-  };
-
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Yükleme işlemi devam ediyorsa, yükleme göster
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -29,13 +14,7 @@ export default function Index() {
       </View>
     );
   }
-
-  // Kayıtlı kullanıcılar için geri tuşu ile welcome'a dönülmemesi için replace kullanıyoruz
-  if (isRegistered) {
-    // @ts-ignore - TypeScript href türü uyumsuzluğu hatasını bastır
-    return <Redirect href="/home/index" />;
-  } else {
-    // @ts-ignore - TypeScript href türü uyumsuzluğu hatasını bastır
-    return <Redirect href="/welcome" />;
-  }
+  
+  // Kullanıcı oturum açmışsa home'a, açmamışsa welcome sayfasına yönlendir
+  return <Redirect href={isAuthenticated ? "/home" : "/welcome"} />;
 }
