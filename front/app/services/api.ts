@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://192.168.1.101:5000/api';
+const API_URL = 'http://192.168.8.103:5000/api';//değişecek
 
 
 
@@ -222,6 +222,41 @@ const apiService = {
     }
   },
   
+    speechToText: async (audioFile: File, language: string = 'tr-TR') => {
+    try {
+      const url = `${API_URL}/stt`;
+
+      // Create a FormData object to send the audio file and language
+      const formData = new FormData();
+      formData.append('audio', audioFile);
+      formData.append('language', language);
+
+      // Send POST request with the audio file
+      const response = await axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return {
+        success: true,
+        data: response.data.text, // Extract the text from the response
+        message: response.data.message,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        // Handle Axios errors
+        if (error.response) {
+          throw new Error(error.response.data?.error || `Server error: ${error.response.status}`);
+        } else if (error.request) {
+          throw new Error('No response received from server. Please check your internet connection.');
+        } else {
+          throw new Error(`Request error: ${error.message}`);
+        }
+      }
+      throw error;
+    }
+  },
   // Add more API methods here as needed
 };
 

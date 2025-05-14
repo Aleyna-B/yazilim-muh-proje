@@ -15,7 +15,7 @@ import {
 import { router } from "expo-router";
 import { useAuth } from "./context/auth";
 import Constants from 'expo-constants';
-
+import { Audio } from "expo-av";
 // Kullanıcı veri tipi tanımı artık context'ten geliyor
 
 const { width, height } = Dimensions.get('window');
@@ -26,7 +26,29 @@ export default function HomeScreen() {
   
   const [listening, setListening] = React.useState(false);
   const [transcript, setTranscript] = React.useState("");
+  const sound = React.useRef<Audio.Sound | null>(null);
 
+  React.useEffect(() => {
+    const playOpeningSound = async () => {
+      try {
+        sound.current = new Audio.Sound();
+        await sound.current.loadAsync(require('../assets/audio/home-acilis.mp3')); // Ses dosyasını yükle
+        await sound.current.playAsync(); // Sesi çal
+      } catch (error) {
+        console.error("Ses çalma hatası:", error);
+      }
+    };
+
+    playOpeningSound();
+
+    return () => {
+      // Bileşen unmount olduğunda sesi durdur ve serbest bırak
+      if (sound.current) {
+        sound.current.unloadAsync();
+      }
+    };
+  }, []);
+  
   // Geri tuşuna basıldığında uygulamadan çıkılsın
   React.useEffect(() => {
     const backAction = () => {

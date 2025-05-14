@@ -63,12 +63,9 @@ export default function TargetScreen() {
       <Text style={styles.title}>HEDEFİNİZ</Text>
       <View style={styles.box}>
         <Text style={styles.boxText}>
-          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa{"\n"}
-          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa{"\n"}
-          aaaaaaaaaaaaaaaaaaaaaaa
         </Text>
       </View>
-      <Text style={styles.infoText}>(TABİKİ SESLİ SÖYLÜYOR AMA{"\n"}YAZILI DA OLUYOR)</Text>
+      <Text style={styles.infoText}></Text>
       <Text style={styles.subtitle}>NASIL GİDİLİR?</Text>
       <View style={styles.box}>
         <Text style={styles.boxText}>{routeInfo}</Text>
