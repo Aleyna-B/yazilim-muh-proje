@@ -1,26 +1,30 @@
+import Constants from 'expo-constants';
+import * as Location from 'expo-location';
+import { router } from "expo-router";
 import * as React from "react";
 import {
-  View,
-  Text,
-  SafeAreaView,
-  Image,
-  TouchableOpacity,
-  StatusBar,
-  StyleSheet,
-  Dimensions,
-  BackHandler,
-  Alert,
+    Alert,
+    BackHandler,
+    Dimensions,
+    Image,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { router } from "expo-router";
 import { useAuth } from "./context/auth";
+import { useLocation } from "./context/location";
 
 const { width } = Dimensions.get('window');
 const BUTTON_SIZE = width * 0.42;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 // Şimdilik bu sayfalar oluşturulmadığı için /home'a yönlendirelim
 // Gerçek route'lar oluşturuldukça güncellenecek
 const MENU_ITEMS = [
-  { key: 'duraklar', label: 'DURAKLAR', icon: require('../assets/images/durak.png'), color: '#0084FF'},
+  { key: 'duraklar', label: 'OTOBÜS NEREDE', icon: require('../assets/images/durak.png'), color: '#0084FF'},
   { key: 'rota', label: 'ROTA', icon: require('../assets/images/rota.png'), color: '#FFC107'},
   { key: 'favoriler', label: 'FAVORİLER', icon: require('../assets/images/heart.png'), color: '#FFC107'},
   { key: 'duyurular', label: 'DUYURULAR', icon: require('../assets/images/megaphone.png'), color: '#0084FF'},
@@ -29,12 +33,18 @@ const MENU_ITEMS = [
 
 export default function MenuScreen() {
   const { user, isLoading } = useAuth();
+  const { 
+    updateLocation, 
+    updateAddress, 
+    updateError, 
+    setLoading: setLocationLoading 
+  } = useLocation();
   
-  // Geri tuşuna basıldığında uygulamadan çıkılsın
+  // Geri tuşuna basıldığında home sayfasına dön
   React.useEffect(() => {
     const backAction = () => {
-      // Menu sayfasındayken geri tuşuna basılırsa uygulamadan çık
-      BackHandler.exitApp();
+      // Menu sayfasındayken geri tuşuna basılırsa home sayfasına dön
+      router.replace('/home');
       return true;
     };
 
@@ -46,11 +56,89 @@ export default function MenuScreen() {
     return () => backHandler.remove();
   }, []);
 
+  // Konum bilgisini al - route.tsx'den taşındı
+  React.useEffect(() => {
+    (async () => {
+      setLocationLoading(true);
+      
+      // Konum izni iste
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        updateError('Konum izni reddedildi');
+        Alert.alert(
+          "Konum İzni Gerekli",
+          "Uygulama özelliklerini kullanabilmek için konum izni gereklidir. Lütfen uygulama ayarlarından konum iznini etkinleştirin.",
+          [{ text: "Tamam", style: "default" }]
+        );
+        setLocationLoading(false);
+        return;
+      }
+
+      try {
+        // Konum bilgisini al
+        const locationResult = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        
+        // Context'e kaydet
+        updateLocation(locationResult);
+
+        // Adres bilgisini al
+        const addressResponse = await Location.reverseGeocodeAsync({
+          latitude: locationResult.coords.latitude,
+          longitude: locationResult.coords.longitude,
+        });
+
+        if (addressResponse && addressResponse.length > 0) {
+          const addressData = addressResponse[0];
+          const formattedAddress = `${addressData.street || ''} ${addressData.name || ''} ${addressData.district || ''} ${addressData.city || ''}`.trim();
+          
+          // Context'e kaydet
+          updateAddress(formattedAddress);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Bilinmeyen hata';
+        updateError(`Konum alınamadı: ${errorMessage}`);
+        Alert.alert(
+          "Konum Hatası",
+          "Konum bilgisi alınamadı. Lütfen daha sonra tekrar deneyin.",
+          [{ text: "Tamam", style: "default" }]
+        );
+      } finally {
+        setLocationLoading(false);
+      }
+    })();
+  }, []);
+
   // Menü elemanına tıklandığında çağrılacak işleyici
   const handleMenuPress = (key: string) => {
+    // Duraklar sayfası için özel yönlendirme ekle
+    if (key === 'duraklar') {
+      router.push('/busstops');
+      return;
+    }
+    
+    // Rota sayfası için özel yönlendirme ekle
+    if (key === 'rota') {
+      router.push('/route');
+      return;
+    }
+    
     // Favoriler sayfası için özel yönlendirme ekle
     if (key === 'favoriler') {
       router.push('/favorites');
+      return;
+    }
+    
+    // Duyurular sayfası için özel yönlendirme ekle
+    if (key === 'duyurular') {
+      router.push('/announcements');
+      return;
+    }
+    
+    // Ayarlar sayfası için özel yönlendirme ekle
+    if (key === 'ayarlar') {
+      router.push('/settings');
       return;
     }
     
@@ -69,6 +157,9 @@ export default function MenuScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      {/* Status bar için ek padding */}
+      <View style={styles.statusBarPadding} />
       
       {/* Üst bilgi / Profil bilgisi */}
       <View style={styles.userInfoContainer}>
@@ -141,6 +232,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  statusBarPadding: {
+    height: STATUSBAR_HEIGHT,
+    backgroundColor: 'white',
   },
   loadingContainer: {
     justifyContent: "center",

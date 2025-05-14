@@ -8,17 +8,36 @@ import {
   TextInput,
   SafeAreaView,
   StatusBar,
+  BackHandler,
+  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "./context/auth";
+import Constants from 'expo-constants';
 
 const { width } = Dimensions.get('window');
 const BUTTON_WIDTH = (width * 0.92 - 16) / 2;
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function FavoritesScreen() {
   const { user, isLoading } = useAuth();
   const [search, setSearch] = React.useState('');
   const [activeTab, setActiveTab] = React.useState('DURAKLAR'); // 'DURAKLAR' veya 'HATLAR'
+
+  // Hardware back button handling
+  React.useEffect(() => {
+    const backAction = () => {
+      router.push('/menu');
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   if (isLoading || !user) {
     return (
@@ -31,6 +50,9 @@ export default function FavoritesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      {/* Status bar için ek padding */}
+      <View style={styles.statusBarPadding} />
       
       {/* Üst bilgi / Profil bilgisi */}
       <View style={styles.userInfoContainer}>
@@ -98,17 +120,6 @@ export default function FavoritesScreen() {
           </Text>
         </View>
       </View>
-      
-      {/* Geri Butonu */}
-      <TouchableOpacity
-        style={styles.backButtonBottomLeft}
-        onPress={() => router.push('/menu')}
-        accessible={true}
-        accessibilityLabel="Geri"
-        accessibilityRole="button"
-      >
-        <Text style={styles.backButtonText}>← Geri</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -118,6 +129,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
+  },
+  statusBarPadding: {
+    height: STATUSBAR_HEIGHT,
+    backgroundColor: 'white',
   },
   loadingContainer: {
     justifyContent: "center",
@@ -201,24 +216,6 @@ const styles = StyleSheet.create({
   clearButtonText: {
     fontSize: 22,
     color: '#888',
-    fontWeight: 'bold',
-  },
-  backButtonBottomLeft: {
-    position: 'absolute',
-    left: 24,
-    bottom: 32,
-    zIndex: 10,
-    backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#bbb',
-    boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
-    elevation: 2,
-  },
-  backButtonText: {
-    fontSize: 18,
-    color: '#222',
     fontWeight: 'bold',
   },
   favoritesListContainer: {

@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { AuthProvider, useAuth } from './context/auth';
+import { LocationProvider } from './context/location';
 
 // Kimlik doğrulama gerektirmeyen sayfalar
 const publicRoutes = ['/welcome', '/register', '/index'];
@@ -21,7 +22,9 @@ export default function RootLayoutWrapper() {
 
   return (
     <AuthProvider>
-      <RootLayout />
+      <LocationProvider>
+        <RootLayout />
+      </LocationProvider>
     </AuthProvider>
   );
 }
@@ -86,6 +89,11 @@ function RootLayout() {
         <Stack.Screen name="home" />
         <Stack.Screen name="menu" />
         <Stack.Screen name="favorites" />
+        <Stack.Screen name="route" />
+        <Stack.Screen name="target" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="busstops" />
+        <Stack.Screen name="announcements" />
         <Stack.Screen name="+not-found" />
       </Stack>
       

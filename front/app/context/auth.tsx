@@ -3,9 +3,11 @@ import { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
+import apiService from '../services/api';
 
 // Kullanıcı tipi tanımı
 interface UserData {
+  _id?: string;
   name: string;
   surname: string;
   phoneNumber: string;
@@ -63,14 +65,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (userData: UserData) => {
     try {
       setIsLoading(true);
-      await AsyncStorage.setItem('userData', JSON.stringify(userData));
-      setUser(userData);
       
-      // Ana sayfaya yönlendir
-      router.replace('/home');
-    } catch (error) {
+      // API servisini kullanarak kayıt işlemi yap
+      const response = await apiService.registerUser(
+        userData.name,
+        userData.surname,
+        userData.phoneNumber
+      );
+      
+      if (response && response.success && response.data) {
+        // API'den dönen veriyi kullan
+        const apiUser = response.data;
+        
+        // Kullanıcı verisini oluştur (_id API'den gelecek)
+        const newUserData: UserData = {
+          _id: apiUser._id,
+          name: apiUser.name,
+          surname: apiUser.surname,
+          phoneNumber: apiUser.phone_number
+        };
+        
+        // AsyncStorage'a kaydet
+        await AsyncStorage.setItem('userData', JSON.stringify(newUserData));
+        setUser(newUserData);
+        
+        // Ana sayfaya yönlendir
+        router.replace('/home');
+        return; // Başarılı kayıt durumunda fonksiyondan çık
+      } else {
+        throw new Error(response.message || 'Kayıt işlemi başarısız oldu.');
+      }
+    } catch (error: unknown) {
       console.error('Kayıt sırasında hata:', error);
-      Alert.alert('Hata', 'Kayıt olurken bir sorun oluştu. Lütfen tekrar deneyin.');
+      
+      // Hata mesajını göster
+      const errorMessage = error instanceof Error ? error.message : 'Kayıt olurken bir sorun oluştu. Lütfen tekrar deneyin.';
+      Alert.alert('Kayıt Hatası', errorMessage);
+      
       throw error;
     } finally {
       setIsLoading(false);

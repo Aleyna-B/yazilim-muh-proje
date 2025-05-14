@@ -18,3 +18,4 @@ export default function Index() {
   // Kullanıcı oturum açmışsa home'a, açmamışsa welcome sayfasına yönlendir
   return <Redirect href={isAuthenticated ? "/home" : "/welcome"} />;
 }
+ 

@@ -10,13 +10,16 @@ import {
   Dimensions,
   Alert,
   BackHandler,
+  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "./context/auth";
+import Constants from 'expo-constants';
 
 // Kullanıcı veri tipi tanımı artık context'ten geliyor
 
 const { width, height } = Dimensions.get('window');
+const STATUSBAR_HEIGHT = Constants.statusBarHeight;
 
 export default function HomeScreen() {
   const { user, isLoading } = useAuth();
@@ -28,7 +31,14 @@ export default function HomeScreen() {
   React.useEffect(() => {
     const backAction = () => {
       // Home sayfasındayken geri tuşuna basılırsa uygulamadan çık
-      BackHandler.exitApp();
+      Alert.alert(
+        "Uygulamadan Çık",
+        "Uygulamadan çıkmak istediğinize emin misiniz?",
+        [
+          { text: "İptal", style: "cancel" },
+          { text: "Evet", onPress: () => BackHandler.exitApp() }
+        ]
+      );
       return true;
     };
 
@@ -73,6 +83,9 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      
+      {/* Status bar için ek padding */}
+      <View style={styles.statusBarPadding} />
       
       {/* Üst bilgi / Profil bilgisi */}
       <View style={styles.userInfoContainer}>
@@ -134,6 +147,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
+  },
+  statusBarPadding: {
+    height: STATUSBAR_HEIGHT,
+    backgroundColor: 'white',
   },
   loadingContainer: {
     justifyContent: "center",
