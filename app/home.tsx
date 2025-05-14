@@ -21,6 +21,8 @@ import {
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
 import { useAuth } from './context/auth';
+import { playTTSFromText } from '../utils/ttsPlayer';
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,6 +32,31 @@ export default function HomeScreen() {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recordingRef = useRef<Audio.Recording | null>(null);
+
+  //  Play TTS audio when screen mounts
+  useEffect(() => {
+    let sound: Audio.Sound | null = null;
+
+    const playTTS = async () => {
+      try {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          require('../assets/audio/home-acilis.mp3')  
+        );
+        sound = newSound;
+        await sound.playAsync();
+      } catch (error) {
+        console.error('TTS playback failed:', error);
+      }
+    };
+
+    playTTS();
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const backAction = () => {
@@ -51,100 +78,100 @@ export default function HomeScreen() {
       if (status !== 'granted') {
         Alert.alert('Mikrofon izni verilmedi');
       }
+      //playTTSFromText("Merhaba! Bu bir test sesli yanıtıdır."); ÖRNEK TTS KULLANIMI
     })();
   }, []);
 
-const RECORDING_OPTIONS = {
-  android: {
-    extension: '.m4a',
-    outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-    audioEncoder: Audio.AndroidAudioEncoder.AAC,
-    sampleRate: 44100,
-    numberOfChannels: 2,
-    bitRate: 128000,
-  },
-  ios: {
-    extension: '.m4a',
-    audioQuality: Audio.IOSAudioQuality.HIGH,
-    sampleRate: 44100,
-    numberOfChannels: 2,
-    bitRate: 128000,
-    linearPCMBitDepth: 16,
-    linearPCMIsBigEndian: false,
-    linearPCMIsFloat: false,
-  },
-  web: {}, // Web platformu için boş bir nesne
-};
+  const RECORDING_OPTIONS = {
+    android: {
+      extension: '.m4a',
+      outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+      audioEncoder: Audio.AndroidAudioEncoder.AAC,
+      sampleRate: 44100,
+      numberOfChannels: 2,
+      bitRate: 128000,
+    },
+    ios: {
+      extension: '.m4a',
+      audioQuality: Audio.IOSAudioQuality.HIGH,
+      sampleRate: 44100,
+      numberOfChannels: 2,
+      bitRate: 128000,
+      linearPCMBitDepth: 16,
+      linearPCMIsBigEndian: false,
+      linearPCMIsFloat: false,
+    },
+    web: {},
+  };
 
-const handleMicPress = async () => {
-  if (!listening) {
-    try {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert("İzin Gerekli", "Mikrofon erişimi için izin vermelisiniz.");
-        return;
-      }
-
-      // Optional: file system/media permissions for Android < 11
-      if (Platform.OS === 'android' && Platform.Version < 30) {
-        const fsPermission = await MediaLibrary.requestPermissionsAsync();
-        if (!fsPermission.granted) {
-          Alert.alert("İzin Gerekli", "Dosya sistemine erişim izni verilmedi.");
-          return;
-        }
-      }
-
-      setListening(true);
-      setTranscript("Dinleniyor...");
-
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync(RECORDING_OPTIONS);
-      await recording.startAsync();
-
-      recordingRef.current = recording;
-
-    } catch (error) {
-      console.error("Ses kaydı başlatılamadı:", error);
-      Alert.alert("Hata", "Ses kaydı başlatılamadı.");
-      setListening(false);
-    }
-
-  } else {
-    try {
-      const recording = recordingRef.current;
-      if (recording) {
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
-
-        if (!uri) {
-          console.error("URI alınamadı.");
-          Alert.alert("Hata", "Ses kaydı URI'si alınamadı.");
+  const handleMicPress = async () => {
+    if (!listening) {
+      try {
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("İzin Gerekli", "Mikrofon erişimi için izin vermelisiniz.");
           return;
         }
 
-        const fileType = mime.getType(uri) || 'audio/m4a';
+        if (Platform.OS === 'android' && Platform.Version < 30) {
+          const fsPermission = await MediaLibrary.requestPermissionsAsync();
+          if (!fsPermission.granted) {
+            Alert.alert("İzin Gerekli", "Dosya sistemine erişim izni verilmedi.");
+            return;
+          }
+        }
 
-        const formData = new FormData();
-        formData.append('audio', {
-          uri,
-          name: `recording-${Date.now()}.m4a`,
-          type: fileType,
-        } as any);
+        setListening(true);
+        setTranscript("Dinleniyor...");
 
-        const response = await axios.post('api/stt', formData);
+        const recording = new Audio.Recording();
+        await recording.prepareToRecordAsync(RECORDING_OPTIONS);
+        await recording.startAsync();
 
-        console.log("STT Yanıtı:", response.data);
-        setTranscript(response.data.text || "Yanıt alınamadı.");
+        recordingRef.current = recording;
+
+      } catch (error) {
+        console.error("Ses kaydı başlatılamadı:", error);
+        Alert.alert("Hata", "Ses kaydı başlatılamadı.");
+        setListening(false);
       }
-    } catch (error) {
-      console.error("Ses kaydı durdurulamadı veya gönderilemedi:", error);
-      Alert.alert("Hata", "Kayıt gönderilirken bir sorun oluştu.");
-    } finally {
-      setListening(false);
-      recordingRef.current = null;
+
+    } else {
+      try {
+        const recording = recordingRef.current;
+        if (recording) {
+          await recording.stopAndUnloadAsync();
+          const uri = recording.getURI();
+
+          if (!uri) {
+            console.error("URI alınamadı.");
+            Alert.alert("Hata", "Ses kaydı URI'si alınamadı.");
+            return;
+          }
+
+          const fileType = mime.getType(uri) || 'audio/m4a';
+
+          const formData = new FormData();
+          formData.append('audio', {
+            uri,
+            name: `recording-${Date.now()}.m4a`,
+            type: fileType,
+          } as any);
+
+          const response = await axios.post('api/stt', formData);
+
+          console.log("STT Yanıtı:", response.data);
+          setTranscript(response.data.text || "Yanıt alınamadı.");
+        }
+      } catch (error) {
+        console.error("Ses kaydı durdurulamadı veya gönderilemedi:", error);
+        Alert.alert("Hata", "Kayıt gönderilirken bir sorun oluştu.");
+      } finally {
+        setListening(false);
+        recordingRef.current = null;
+      }
     }
-  }
-};
+  };
 
   const navigateToMenu = () => {
     router.push('/menu');
