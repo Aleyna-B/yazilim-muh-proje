@@ -1,5 +1,6 @@
-from flask import Flask, request, send_file, Blueprint, jsonify
+from flask import request, send_file, Blueprint, jsonify
 import requests
+import io
 import os
 from dotenv import load_dotenv
 
@@ -19,7 +20,7 @@ def tts():
     text = data.get("text", "")
 
     if not text:
-        return {"error": "Text is required."}, 400
+        return jsonify({"error": "Text is required."}), 400
 
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{VOICE_ID}"
 
@@ -40,9 +41,15 @@ def tts():
     response = requests.post(url, headers=headers, json=payload)
 
     if response.status_code == 200:
-        audio_path = "output.mp3"
-        with open(audio_path, "wb") as f:
-            f.write(response.content)
-        return send_file(audio_path, mimetype="audio/mpeg")
+        audio_data = io.BytesIO(response.content)
+        return send_file(
+            audio_data,
+            mimetype='audio/mpeg',
+            as_attachment=False,
+            download_name='tts.mp3'
+        )
     else:
-        return {"error": "TTS failed", "details": response.text}, response.status_code
+        return jsonify({
+            "error": "TTS failed",
+            "details": response.text
+        }), response.status_code
